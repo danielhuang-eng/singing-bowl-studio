@@ -1,0 +1,11 @@
+{
+  "name": "singing-bowl-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "缽間：繁體中文頌缽聆聽工作室，適用於 GitHub Pages",
+  "scripts": {
+    "start": "node scripts/serve.cjs",
+    "test": "node --test tests/*.test.cjs",
+    "check": "node --check app.js && node --check bowl.js && node --check bowl-audio.js && node --check bowl-worklet.js && node --test tests/*.test.cjs"
+  }
+}

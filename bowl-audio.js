@@ -1,0 +1,12 @@
+(function(root){
+ 'use strict';
+ const defaults={frequency:187,decay:10,brightness:.3,hardness:.22,beat:1.2,strength:.5,reverb:.24,volume:.45};
+ const modal=n=>(n*n-1)/Math.sqrt(1+1/(n*n));
+ const ratios=[2,3,4,5,6,7].map(n=>modal(n)/modal(2));
+ class BowlAudio{
+  constructor(context){this.ctx=context;this.input=context.createGain();this.dry=context.createGain();this.wet=context.createGain();this.convolver=context.createConvolver();this.master=context.createGain();this.limiter=context.createDynamicsCompressor();this.limiter.threshold.value=-12;this.limiter.knee.value=12;this.limiter.ratio.value=12;this.limiter.attack.value=.003;this.limiter.release.value=.3;this.input.connect(this.dry).connect(this.limiter);this.input.connect(this.convolver).connect(this.wet).connect(this.limiter);this.limiter.connect(this.master).connect(context.destination);this.master.gain.value=.45;const b=context.createBuffer(2,context.sampleRate*3,context.sampleRate);for(let ch=0;ch<2;ch++){let smooth=0;const d=b.getChannelData(ch);for(let i=0;i<d.length;i++){smooth=.65*smooth+.35*(Math.random()*2-1);d[i]=smooth*Math.exp(-i/(context.sampleRate*.55));}}this.convolver.buffer=b;this.active=new Set();}
+  mix(p,muted=false){const t=this.ctx.currentTime;this.master.gain.setTargetAtTime(muted?0:p.volume,t,.04);this.dry.gain.setTargetAtTime(1-p.reverb*.5,t,.1);this.wet.gain.setTargetAtTime(p.reverb,t,.1);}
+  strike(p,time=this.ctx.currentTime){const c=this.ctx;const voice=c.createGain();voice.connect(this.input);this.active.add(voice);let left=ratios.length*2;const release=()=>{if(--left===0){voice.disconnect();this.active.delete(voice);}};const weights=ratios.map((r,i)=>i===0?1:Math.exp(-i*(1.7-p.brightness))*(.35+.65*p.hardness));const norm=weights.reduce((a,b)=>a+b,0);ratios.forEach((r,i)=>{for(let side=0;side<2;side++){const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=p.frequency*r+side*p.beat*(1+i*.12);const duration=p.decay/(1+i*.19),attack=.004+(1-p.hardness)*.018;const peak=.18*p.strength*weights[i]/norm/Math.sqrt(Math.max(1,p.decay/3));g.gain.setValueAtTime(0,time);g.gain.linearRampToValueAtTime(peak,time+attack);g.gain.exponentialRampToValueAtTime(.00001,time+duration);g.gain.linearRampToValueAtTime(0,time+duration+.03);o.connect(g).connect(voice);o.start(time);o.stop(time+duration+.04);o.onended=()=>{o.disconnect();g.disconnect();release();};}});return time;}
+ }
+ const api={defaults,ratios,BowlAudio};if(typeof module!=='undefined')module.exports=api;else root.BowlSynth=api;
+})(globalThis);

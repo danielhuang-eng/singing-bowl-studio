@@ -1,0 +1,8 @@
+node_modules/
+output/
+.playwright-cli/
+_site/
+參考.png
+*.log
+.DS_Store
+Thumbs.db
