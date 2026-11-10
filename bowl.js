@@ -10,7 +10,7 @@
  function visual(animate=true){count++;$('strike-count').textContent=String(count).padStart(3,'0');if(animate&&!document.hidden){$('instrument').classList.remove('struck');void $('instrument').offsetWidth;$('instrument').classList.add('struck');}}
  async function setupBeat(){
   if(worklet)return;
-  await audio.ctx.audioWorklet.addModule('./bowl-worklet.js');
+  await audio.ctx.audioWorklet.addModule('./bowl-worklet.js?v=interval-10');
   worklet=new AudioWorkletNode(audio.ctx,'singing-bowl',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[1]});
   worklet.connect(audio.input);
   worklet.port.onmessage=({data})=>visual(playing&&audio.ctx.currentTime-data.time<.2);
