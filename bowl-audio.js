@@ -1,6 +1,6 @@
 (function(root){
  'use strict';
- const defaults={frequency:187,decay:10,brightness:.3,hardness:.22,beat:1.2,strength:.5,reverb:.24,volume:.45};
+ const defaults={interval:10,frequency:187,decay:10,brightness:.3,hardness:.22,beat:1.2,strength:.5,reverb:.24,volume:.45};
  const modal=n=>(n*n-1)/Math.sqrt(1+1/(n*n));
  const ratios=[2,3,4,5,6,7].map(n=>modal(n)/modal(2));
  class BowlAudio{

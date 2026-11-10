@@ -7,12 +7,23 @@ class SingingBowlProcessor extends AudioWorkletProcessor {
     this.nextFrame = 0;
     this.voices = [];
     this.port.onmessage = ({ data }) => {
-      if (data.params) this.params = data.params;
+      if (data.params) {
+        const previousInterval = this.intervalFrames();
+        this.params = data.params;
+        // A tempo change starts a fresh interval; tone edits keep the beat.
+        if (this.playing && previousInterval !== this.intervalFrames()) {
+          this.nextFrame = currentFrame + this.intervalFrames();
+        }
+      }
       if (data.playing !== undefined) {
         if (data.playing && !this.playing) this.nextFrame = currentFrame;
         this.playing = data.playing;
       }
     };
+  }
+  intervalFrames() {
+    const seconds = Number.isFinite(this.params?.interval) ? Math.min(60, Math.max(1, this.params.interval)) : 10;
+    return Math.round(seconds * sampleRate);
   }
   strike(frame) {
     const p = this.params;
@@ -36,7 +47,7 @@ class SingingBowlProcessor extends AudioWorkletProcessor {
       const frame = currentFrame + j;
       if (this.playing && this.params && frame >= this.nextFrame) {
         this.strike(frame);
-        this.nextFrame = frame + sampleRate;
+        this.nextFrame = frame + this.intervalFrames();
       }
       let value = 0;
       for (const v of this.voices) {
